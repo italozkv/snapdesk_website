@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapDesk Pro — Comprar versão Pro</title>
+    <meta name="description" content="SnapDesk Pro adiciona automações, presets, destinos de upload e recursos avançados para quem usa screenshots todos os dias.">
+    <meta property="og:title" content="SnapDesk Pro — Comprar versão Pro">
+    <meta property="og:description" content="Upgrade do SnapDesk para fluxos profissionais de captura, OCR, edição e upload.">
+    <link rel="icon" type="image/x-icon" href="../SnapDeskLogo.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --page: #030810;
+            --ink: #eef3ff;
+            --muted: #7a90b0;
+            --soft: rgba(238, 243, 255, 0.78);
+            --line: rgba(120, 160, 220, 0.13);
+            --cyan: #0ee8ff;
+            --cyan-dim: rgba(14, 232, 255, 0.14);
+            --blue: #1a7cff;
+            --green: #3eed7a;
+            --panel: rgba(6, 12, 26, 0.76);
+            --shadow: 0 40px 120px rgba(0, 0, 0, 0.65);
+            --radius-lg: 28px;
+            --radius-md: 18px;
+            --radius-sm: 12px;
+            --font-display: 'Space Grotesk', 'Segoe UI Variable', sans-serif;
+            --font-mono: 'DM Mono', 'Cascadia Code', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: var(--font-display);
+            background: var(--page);
+            overflow-x: hidden;
+        }
+
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+            background:
+                radial-gradient(ellipse 60% 50% at 15% 10%, rgba(14,232,255,.18), transparent),
+                radial-gradient(ellipse 50% 60% at 85% 18%, rgba(26,124,255,.22), transparent),
+                radial-gradient(ellipse 70% 42% at 55% 112%, rgba(62,237,122,.1), transparent),
+                linear-gradient(180deg, #030810 0%, #060f1e 55%, #030810 100%);
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image:
+                linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,.7) 0%, transparent 80%);
+        }
+
+        .bg-glow {
+            position: fixed;
+            bottom: -30vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 60vh;
+            background: radial-gradient(ellipse at center, rgba(14,232,255,.12), transparent 65%);
+            filter: blur(32px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        a { color: inherit; }
+
+        .site {
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 34px;
+            padding: 0 13px;
+            border: 1px solid rgba(14,232,255,.24);
+            border-radius: 999px;
+            background: rgba(14,232,255,.07);
+            color: #c8f6ff;
+            font-size: .88rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+        }
+
+        .topbar {
+            position: fixed;
+            left: 50%;
+            top: 16px;
+            z-index: 100;
+            width: min(1400px, calc(100% - 40px));
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 14px;
+            border: 1px solid rgba(150,190,255,.11);
+            border-radius: var(--radius-md);
+            background: rgba(3, 8, 16, 0.78);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 0 8px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+            animation: topbar-in 600ms cubic-bezier(.22,1,.36,1) both;
+        }
+
+        @keyframes topbar-in {
+            from { opacity: 0; transform: translate(-50%, -14px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+        }
+
+        .brand img {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: var(--cyan-dim);
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: -.01em;
+        }
+
+        .brand-name .snap { color: var(--cyan); }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: .92rem;
+            font-weight: 500;
+            padding: 8px 13px;
+            border-radius: 10px;
+            transition: color .15s, background .15s;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: var(--ink);
+            background: rgba(255,255,255,.07);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 48px;
+            padding: 0 22px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: .97rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s, background .2s, border-color .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.12), transparent 60%);
+            pointer-events: none;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        .btn-primary {
+            color: #021018;
+            background: linear-gradient(135deg, #22f0ff 0%, #1a85ff 100%);
+            box-shadow: 0 14px 38px rgba(14,200,255,.28), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 20px 52px rgba(14,200,255,.42), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+
+        .btn-ghost {
+            color: var(--soft);
+            background: rgba(255,255,255,.05);
+            border-color: rgba(180,210,255,.13);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,.09);
+            border-color: rgba(180,210,255,.22);
+        }
+
+        .btn svg,
+        .feature-icon svg {
+            flex-shrink: 0;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .hero {
+            min-height: 94vh;
+            padding: 128px 0 74px;
+            display: grid;
+            align-items: center;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(390px, .92fr) minmax(360px, .72fr);
+            gap: 54px;
+            align-items: center;
+        }
+
+        .hero-copy,
+        .price-card {
+            animation: hero-up 700ms .08s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        .price-card { animation-delay: .2s; }
+
+        @keyframes hero-up {
+            from { opacity: 0; transform: translateY(22px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            margin: 22px 0 0;
+            max-width: 780px;
+            font-size: clamp(4rem, 7vw, 7rem);
+            line-height: .89;
+            letter-spacing: -.055em;
+            font-weight: 900;
+        }
+
+        .h1-snap {
+            color: var(--cyan);
+            text-shadow: 0 0 48px rgba(14,232,255,.25);
+        }
+
+        .h1-desk { color: #fff; }
+
+        .hero-lead {
+            margin: 26px 0 0;
+            max-width: 650px;
+            color: var(--soft);
+            font-size: clamp(1.15rem, 1.8vw, 1.48rem);
+            line-height: 1.42;
+        }
+
+        .hero-lead strong { color: var(--cyan); }
+
+        .cta-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .version-note {
+            margin: 18px 0 0;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: .86rem;
+        }
+
+        .price-card {
+            position: relative;
+            padding: 30px;
+            border: 1px solid rgba(100,160,255,.2);
+            border-radius: var(--radius-lg);
+            background:
+                radial-gradient(circle at 90% 0%, rgba(14,232,255,.16), transparent 38%),
+                linear-gradient(180deg, rgba(9,17,32,.96), rgba(4,9,18,.99));
+            box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.07);
+            overflow: hidden;
+        }
+
+        .price-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(130deg, rgba(255,255,255,.09), transparent 32%, transparent 70%, rgba(14,232,255,.08));
+            pointer-events: none;
+        }
+
+        .price-card > * { position: relative; }
+
+        .plan-tag {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: .84rem;
+        }
+
+        .plan-tag b {
+            color: var(--cyan);
+            font-family: var(--font-display);
+            font-size: .9rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .price {
+            margin-top: 18px;
+            font-size: clamp(3.8rem, 7vw, 5.8rem);
+            line-height: .88;
+            letter-spacing: -.06em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--cyan), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .price small {
+            color: var(--muted);
+            -webkit-text-fill-color: var(--muted);
+            font-size: 1rem;
+            letter-spacing: 0;
+            font-weight: 700;
+        }
+
+        .price-card p {
+            margin: 18px 0 0;
+            color: var(--muted);
+            line-height: 1.62;
+        }
+
+        .mini-list {
+            display: grid;
+            gap: 12px;
+            margin: 26px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .mini-list li {
+            display: grid;
+            grid-template-columns: 30px 1fr;
+            gap: 12px;
+            align-items: center;
+            color: var(--soft);
+            font-size: .95rem;
+        }
+
+        .mini-list span,
+        .step-num {
+            display: grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            color: #021018;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            font-weight: 900;
+        }
+
+        .section { padding: 90px 0 0; }
+
+        .section-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: clamp(2.2rem, 4vw, 4rem);
+            line-height: .98;
+            letter-spacing: -.02em;
+        }
+
+        .section-head p {
+            margin: 0;
+            max-width: 440px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: var(--line);
+            overflow: hidden;
+        }
+
+        .feature {
+            padding: 28px;
+            min-height: 230px;
+            background: linear-gradient(180deg, rgba(9,17,32,.96), rgba(4,9,18,.99));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 0% 0%, rgba(14,232,255,.06), transparent 60%);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .feature:hover::before { opacity: 1; }
+        .feature > * { position: relative; }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 24px;
+            border-radius: 13px;
+            color: var(--cyan);
+            background: rgba(14,232,255,.08);
+            border: 1px solid rgba(14,232,255,.16);
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 1.9;
+            filter: drop-shadow(0 0 8px rgba(14,232,255,.3));
+        }
+
+        .feature h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .feature p {
+            margin: 9px 0 0;
+            color: var(--muted);
+            font-size: .92rem;
+            line-height: 1.58;
+        }
+
+        .compare {
+            display: grid;
+            grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .panel {
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(10,19,36,.96), rgba(4,9,18,.99));
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+        .panel.featured {
+            border-color: rgba(14,232,255,.28);
+            background:
+                radial-gradient(circle at 100% 0%, rgba(14,232,255,.12), transparent 36%),
+                linear-gradient(180deg, rgba(12,24,46,.96), rgba(4,9,18,.99));
+        }
+
+        .panel h3 {
+            margin: 0;
+            font-size: 1.35rem;
+        }
+
+        .panel p {
+            margin: 10px 0 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .rows {
+            display: grid;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 34px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.04);
+            color: var(--soft);
+        }
+
+        .checkout-band {
+            position: relative;
+            overflow: hidden;
+            padding: 42px;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(14,232,255,.24);
+            background:
+                radial-gradient(circle at 90% 20%, rgba(14,232,255,.18), transparent 34%),
+                linear-gradient(135deg, rgba(9,24,45,.98), rgba(4,9,18,.98));
+            box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+        .checkout-band h2 {
+            margin: 0;
+            max-width: 820px;
+            font-size: clamp(2.2rem, 4vw, 4rem);
+            line-height: .98;
+            letter-spacing: -.02em;
+        }
+
+        .checkout-band p {
+            margin: 18px 0 0;
+            max-width: 700px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 38px 0 28px;
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .footer-brand {
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .footer-brand .snap { color: var(--cyan); }
+
+        .js .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 600ms cubic-bezier(.22,1,.36,1), transform 600ms cubic-bezier(.22,1,.36,1);
+        }
+
+        .js .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 1100px) {
+            .hero { padding-top: 108px; min-height: auto; }
+            .hero-grid,
+            .compare { grid-template-columns: 1fr; }
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 700px) {
+            .topbar {
+                position: static;
+                transform: none;
+                margin: 12px auto;
+                width: min(100%, calc(100% - 22px));
+                animation: none;
+            }
+            .site { width: min(100%, calc(100% - 22px)); }
+            .nav { width: 100%; overflow-x: auto; }
+            .hero { padding: 30px 0 50px; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .cta-row .btn { width: 100%; }
+            .section { padding-top: 58px; }
+            .section-head { flex-direction: column; align-items: flex-start; }
+            .checkout-band,
+            .panel,
+            .price-card { padding: 24px 22px; border-radius: 20px; }
+            h1 { font-size: clamp(3rem, 14vw, 3.8rem); }
+            .footer { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="topbar">
+    <a class="brand" href="./index.html" aria-label="SnapDesk — Início">
+        <img src="../SnapDeskLogo.ico" alt="">
+        <span class="brand-name"><span class="snap">Snap</span>Desk</span>
+    </a>
+    <nav class="nav" aria-label="Navegação principal">
+        <a href="./index.html#recursos">Recursos</a>
+        <a href="./index.html#editor">Editor</a>
+        <a href="./index.html#discord">Discord</a>
+        <a class="active" href="./pro.html">Pro</a>
+        <a href="./index.html#download">Download</a>
+    </nav>
+    <a class="btn btn-primary" href="#comprar" style="min-height:38px; padding:0 16px; font-size:.88rem;">
+        <svg viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg>
+        Comprar
+    </a>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="site hero-grid">
+            <div class="hero-copy">
+                <div class="tag"><span class="dot"></span> Upgrade para fluxos profissionais</div>
+
+                <h1>
+                    <span class="h1-snap">Snap</span><span class="h1-desk">Desk Pro</span>
+                </h1>
+
+                <p class="hero-lead">
+                    Para quem usa print como ferramenta de trabalho.<br>
+                    <strong>Automatize captura, OCR, edição e upload sem perder velocidade.</strong>
+                </p>
+
+                <div class="cta-row">
+                    <a class="btn btn-primary" href="#comprar">
+                        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        Comprar versão Pro
+                    </a>
+                    <a class="btn btn-ghost" href="./index.html">
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                        Voltar para versão grátis
+                    </a>
+                </div>
+
+                <p class="version-note">Licença pessoal · Windows 10/11 · ativação local planejada</p>
+            </div>
+
+            <aside class="price-card" aria-label="Plano SnapDesk Pro">
+                <div class="plan-tag">
+                    <b>Pro</b>
+                    <span>uso pessoal</span>
+                </div>
+                <div class="price">R$ 19 <small>/ mês</small></div>
+                <p>Preço de referência para a página comercial. O checkout real pode ser ligado depois em Stripe, Mercado Pago, Gumroad ou outro provedor.</p>
+
+                <ul class="mini-list">
+                    <li><span>+</span><b>Presets de captura e upload</b></li>
+                    <li><span>+</span><b>Histórico avançado de OCR</b></li>
+                    <li><span>+</span><b>Destinos favoritos e automações</b></li>
+                </ul>
+            </aside>
+        </div>
+    </section>
+
+    <div class="site">
+        <section class="section reveal" id="recursos-pro">
+            <div class="section-head">
+                <h2>O Pro entra quando o print vira rotina.</h2>
+                <p>A versão grátis continua leve. A Pro concentra os recursos para quem repete o mesmo fluxo muitas vezes por dia.</p>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28"><path d="M6 6h16v5H6z"/><path d="M6 16h16v6H6z"/><path d="M10 8.5h5M10 19h8"/></svg>
+                    </div>
+                    <h3>Presets de fluxo</h3>
+                    <p>Salve combinações de captura, editor, cópia e upload para repetir tarefas sem reconfigurar nada.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28"><path d="M8.2 21.5h11.2a5.1 5.1 0 0 0 .8-10.1A7.1 7.1 0 0 0 6.5 13a4.3 4.3 0 0 0 1.7 8.5z"/><path d="M14 20V10.5M10.5 14l3.5-3.5L17.5 14"/></svg>
+                    </div>
+                    <h3>Uploads favoritos</h3>
+                    <p>Organize destinos por projeto, canal ou cliente, mantendo o compartilhamento mais previsível.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28"><path d="M8 4.5h8.5L21 9v14.5H8z"/><path d="M16.5 4.5V9H21"/><path d="M11 13h6M11 17h7M11 21h4"/></svg>
+                    </div>
+                    <h3>OCR com histórico</h3>
+                    <p>Recupere textos extraídos antes, copie novamente e evite refazer OCR em prints recorrentes.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section reveal">
+            <div class="compare">
+                <div class="panel">
+                    <div class="tag">SnapDesk grátis</div>
+                    <h3>Leve para uso diário.</h3>
+                    <p>Captura, editor flutuante, OCR e uploads básicos continuam disponíveis para quem só quer um app rápido.</p>
+                    <div class="rows">
+                        <div class="row"><span class="step-num">1</span><b>Captura com seleção de área</b></div>
+                        <div class="row"><span class="step-num">2</span><b>Editor com anotações essenciais</b></div>
+                        <div class="row"><span class="step-num">3</span><b>Upload temporário e Discord webhook</b></div>
+                    </div>
+                </div>
+
+                <div class="panel featured">
+                    <div class="tag"><span class="dot"></span> SnapDesk Pro</div>
+                    <h3>Mais controle para trabalho recorrente.</h3>
+                    <p>O Pro adiciona atalhos de produtividade, organização e automações para reduzir cliques em rotinas de suporte, criação e documentação.</p>
+                    <div class="rows">
+                        <div class="row"><span class="step-num">+</span><b>Presets de captura, OCR e upload</b></div>
+                        <div class="row"><span class="step-num">+</span><b>Histórico pesquisável de OCR e links</b></div>
+                        <div class="row"><span class="step-num">+</span><b>Perfis por projeto, cliente ou canal</b></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal" id="comprar">
+            <div class="checkout-band">
+                <div class="tag" style="margin-bottom:20px;"><span class="dot"></span> Compra da versão Pro</div>
+                <h2>Comprar SnapDesk Pro.</h2>
+                <p>Por enquanto este botão abre um pedido por email, porque ainda não existe checkout real conectado no projeto. Quando o provedor de pagamento for escolhido, esta página já está pronta para apontar para o link final.</p>
+
+                <div class="cta-row" style="margin-top:28px;">
+                    <a class="btn btn-primary" href="mailto:compras@snapdesk.local?subject=Comprar%20SnapDesk%20Pro">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>
+                        Solicitar compra
+                    </a>
+                    <a class="btn btn-ghost" href="../dist/portable/SnapDesk.exe">
+                        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 12-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="4" rx="2"/></svg>
+                        Baixar versão grátis
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <span class="footer-brand"><span class="snap">Snap</span>Desk Pro</span>
+            <span>Upgrade para capturas, OCR e uploads com menos cliques.</span>
+            <span>Feito para evoluir junto com o app.</span>
+        </footer>
+    </div>
+</main>
+
+<script>
+(function () {
+    document.documentElement.classList.add('js');
+
+    var items = document.querySelectorAll('.reveal');
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                io.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function (el) { io.observe(el); });
+
+    var topbar = document.querySelector('.topbar');
+    if (topbar && window.innerWidth > 700) {
+        window.addEventListener('scroll', function () {
+            var ratio = Math.min(window.scrollY / 80, 1);
+            topbar.style.background = 'rgba(3,8,16,' + (0.78 + ratio * 0.18) + ')';
+        }, { passive: true });
+    }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapDesk — Captura de tela rápida para Windows</title>
+    <meta name="description" content="SnapDesk é um app leve para capturar, anotar, copiar e enviar screenshots no Windows. Editor flutuante, OCR integrado e upload direto para Discord.">
+    <meta property="og:title" content="SnapDesk — Captura de tela rápida para Windows">
+    <meta property="og:description" content="Capture, edite e envie prints em segundos. Editor flutuante, OCR, upload para Discord.">
+    <link rel="icon" type="image/x-icon" href="../SnapDeskLogo.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --page:        #030810;
+            --page-2:      #060f1e;
+            --ink:         #eef3ff;
+            --muted:       #7a90b0;
+            --soft:        rgba(238, 243, 255, 0.78);
+            --line:        rgba(120, 160, 220, 0.13);
+            --line-bright: rgba(120, 160, 220, 0.26);
+            --cyan:        #0ee8ff;
+            --cyan-dim:    rgba(14, 232, 255, 0.14);
+            --blue:        #1a7cff;
+            --green:       #3eed7a;
+            --amber:       #ffb83a;
+            --panel:       rgba(6, 12, 26, 0.76);
+            --shadow:      0 40px 120px rgba(0, 0, 0, 0.65);
+            --radius-lg:   28px;
+            --radius-md:   18px;
+            --radius-sm:   12px;
+            --font-display: 'Space Grotesk', 'Segoe UI Variable', sans-serif;
+            --font-mono:    'DM Mono', 'Cascadia Code', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: var(--font-display);
+            background: var(--page);
+            overflow-x: hidden;
+        }
+
+        /* ─── Atmospheric background ─── */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+            background:
+                radial-gradient(ellipse 60% 50% at 15%  10%, rgba(14,232,255,.18), transparent),
+                radial-gradient(ellipse 50% 60% at 85%  18%, rgba(26,124,255,.22), transparent),
+                radial-gradient(ellipse 80% 40% at 50% 110%, rgba(14,232,255,.12), transparent),
+                linear-gradient(180deg, #030810 0%, #060f1e 55%, #030810 100%);
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image:
+                linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,.7) 0%, transparent 80%);
+        }
+
+        .bg-glow {
+            position: fixed;
+            bottom: -30vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 60vh;
+            background: radial-gradient(ellipse at center, rgba(14,232,255,.12), transparent 65%);
+            filter: blur(32px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ─── Utilities ─── */
+        a { color: inherit; }
+
+        .site {
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 34px;
+            padding: 0 13px;
+            border: 1px solid rgba(14,232,255,.24);
+            border-radius: 999px;
+            background: rgba(14,232,255,.07);
+            color: #c8f6ff;
+            font-size: .88rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+            animation: pulse-dot 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,100% { opacity: 1; box-shadow: 0 0 12px var(--green); }
+            50%      { opacity: .7; box-shadow: 0 0 22px var(--green); }
+        }
+
+        /* ─── Topbar ─── */
+        .topbar {
+            position: fixed;
+            left: 50%;
+            top: 16px;
+            z-index: 100;
+            width: min(1400px, calc(100% - 40px));
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 14px;
+            border: 1px solid rgba(150,190,255,.11);
+            border-radius: var(--radius-md);
+            background: rgba(3, 8, 16, 0.78);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 0 8px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+            animation: topbar-in 600ms cubic-bezier(.22,1,.36,1) both;
+        }
+
+        @keyframes topbar-in {
+            from { opacity:0; transform: translate(-50%, -14px); }
+            to   { opacity:1; transform: translate(-50%, 0); }
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+        }
+
+        .brand img {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: var(--cyan-dim);
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: -.01em;
+        }
+
+        .brand-name .snap { color: var(--cyan); }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: .92rem;
+            font-weight: 500;
+            padding: 8px 13px;
+            border-radius: 10px;
+            transition: color .15s, background .15s;
+        }
+
+        .nav a:hover {
+            color: var(--ink);
+            background: rgba(255,255,255,.07);
+        }
+
+        /* ─── Buttons ─── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 48px;
+            padding: 0 22px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: .97rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s, background .2s, border-color .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.12), transparent 60%);
+            pointer-events: none;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-primary {
+            color: #021018;
+            background: linear-gradient(135deg, #22f0ff 0%, #1a85ff 100%);
+            box-shadow: 0 14px 38px rgba(14,200,255,.28), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 20px 52px rgba(14,200,255,.42), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+
+        .btn-ghost {
+            color: var(--soft);
+            background: rgba(255,255,255,.05);
+            border-color: rgba(180,210,255,.13);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,.09);
+            border-color: rgba(180,210,255,.22);
+        }
+
+        .btn svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ─── Hero ─── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            padding: 130px 0 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0 calc(50% - 52vw);
+            background:
+                radial-gradient(ellipse 48% 60% at 74% 42%, rgba(26,124,255,.32), transparent),
+                radial-gradient(ellipse 36% 46% at 20% 38%, rgba(14,232,255,.14), transparent);
+            z-index: 0;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 180px;
+            background: linear-gradient(180deg, transparent, var(--page));
+            z-index: 1;
+        }
+
+        .hero-inner {
+            position: relative;
+            z-index: 2;
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(360px, .72fr) minmax(560px, 1fr);
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-copy {
+            animation: hero-up 700ms .1s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        @keyframes hero-up {
+            from { opacity:0; transform: translateY(28px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        h1 {
+            margin: 20px 0 0;
+            font-size: clamp(4.2rem, 7vw, 7.2rem);
+            line-height: .92;
+            letter-spacing: -.03em;
+            font-weight: 900;
+        }
+
+        .h1-snap { color: var(--cyan); text-shadow: 0 0 60px rgba(14,232,255,.3); }
+        .h1-desk { color: #fff; }
+
+        .hero-lead {
+            margin: 22px 0 0;
+            color: var(--soft);
+            font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+            line-height: 1.45;
+            max-width: 580px;
+        }
+
+        .hero-lead strong { color: var(--cyan); font-weight: 700; }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .version-note {
+            margin-top: 14px;
+            font-family: var(--font-mono);
+            font-size: .82rem;
+            color: var(--muted);
+        }
+
+        /* ─── Trust pills ─── */
+        .trust-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .trust-pill {
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--line);
+            background: linear-gradient(170deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+            transition: transform .2s ease, border-color .2s, background .2s;
+        }
+
+        .trust-pill:hover {
+            transform: translateY(-3px);
+            border-color: rgba(14,232,255,.28);
+            background: linear-gradient(170deg, rgba(14,232,255,.09), rgba(255,255,255,.02));
+        }
+
+        .trust-pill b {
+            display: block;
+            font-size: .93rem;
+            font-family: var(--font-mono);
+            color: #d6f5ff;
+        }
+
+        .trust-pill span {
+            display: block;
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+        }
+
+        /* ─── Product stage (hero right side) ─── */
+        .product-stage {
+            position: relative;
+            display: grid;
+            place-items: center;
+            perspective: 1600px;
+            min-height: 560px;
+            animation: hero-up 700ms .22s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        /* Big ambient glow behind frame */
+        .product-stage::before {
+            content: '';
+            position: absolute;
+            width: 80%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(14,232,255,.22) 0%, rgba(26,124,255,.1) 48%, transparent 70%);
+            filter: blur(10px);
+        }
+
+        .editor-frame {
+            position: relative;
+            width: min(860px, 100%);
+            border: 1px solid rgba(100,160,255,.2);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, #07101e, #040b16);
+            box-shadow: 0 40px 110px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07);
+            overflow: hidden;
+            transform: rotateX(var(--tx, 2deg)) rotateY(var(--ty, -8deg));
+            animation: float-frame 7s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        /* Glare shimmer overlay */
+        .editor-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: linear-gradient(130deg, rgba(255,255,255,.09) 0%, transparent 30%, transparent 70%, rgba(14,232,255,.08) 100%);
+        }
+
+        @keyframes float-frame {
+            0%,100% { transform: rotateX(var(--tx,2deg)) rotateY(var(--ty,-8deg)) translateY(0); }
+            50%      { transform: rotateX(var(--tx,2deg)) rotateY(var(--ty,-8deg)) translateY(-14px); }
+        }
+
+        .frame-bar {
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid rgba(120,160,220,.12);
+            background: rgba(3,7,16,.6);
+        }
+
+        .frame-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: .84rem;
+        }
+
+        .frame-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 14px var(--cyan);
+        }
+
+        .win-controls {
+            display: flex;
+            gap: 7px;
+        }
+
+        .win-controls span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.18);
+        }
+
+        .win-controls span:nth-child(1) { background: #ff5f57; }
+        .win-controls span:nth-child(2) { background: #febc2e; }
+        .win-controls span:nth-child(3) { background: #28c840; }
+
+        .editor-frame img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 874 / 589;
+            object-fit: cover;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Floating upload card */
+        .hero-proof {
+            position: absolute;
+            right: -10px;
+            bottom: 20px;
+            width: min(460px, 54%);
+            border: 1px solid rgba(80,140,255,.18);
+            border-radius: var(--radius-md);
+            background: rgba(4, 9, 20, 0.88);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 24px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+            overflow: hidden;
+            animation: float-proof 5.8s .5s ease-in-out infinite;
+        }
+
+        @keyframes float-proof {
+            0%,100% { transform: translateY(0) rotate(-.5deg); }
+            50%      { transform: translateY(-12px) rotate(.5deg); }
+        }
+
+        .proof-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 44px;
+            padding: 0 14px;
+            border-bottom: 1px solid rgba(120,160,220,.11);
+            color: var(--muted);
+            font-size: .84rem;
+        }
+
+        .hero-proof img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* ─── Section base ─── */
+        .section { padding: 90px 0 0; }
+
+        .section-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: clamp(2.2rem, 4vw, 4rem);
+            line-height: .98;
+            letter-spacing: -.02em;
+        }
+
+        .section-head p {
+            margin: 0;
+            max-width: 420px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* ─── Feature grid ─── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: var(--line);
+            overflow: hidden;
+        }
+
+        .feature {
+            padding: 28px;
+            min-height: 220px;
+            background: linear-gradient(180deg, rgba(9,17,32,.96), rgba(4,9,18,.99));
+            transition: background .2s, transform .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 0% 0%, rgba(14,232,255,.06), transparent 60%);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .feature:hover::before { opacity: 1; }
+
+        .feature:hover {
+            background: linear-gradient(180deg, rgba(12,24,46,.96), rgba(4,9,18,.99));
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            margin-bottom: 22px;
+            color: var(--cyan);
+            background: var(--cyan-dim);
+            border: 1px solid rgba(14,232,255,.18);
+            transition: box-shadow .2s;
+        }
+
+        .feature:hover .feature-icon {
+            box-shadow: 0 0 24px rgba(14,232,255,.18);
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px rgba(14,232,255,.3));
+        }
+
+        .feature h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .feature p {
+            margin: 9px 0 0;
+            color: var(--muted);
+            font-size: .92rem;
+            line-height: 1.58;
+        }
+
+        /* ─── Stat bar ─── */
+        /* ─── Showcase ─── */
+        .showcase {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(300px, .8fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .showcase.reverse { direction: rtl; }
+        .showcase.reverse > * { direction: ltr; }
+
+        .sc-panel {
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(10,19,36,.96), rgba(4,9,18,.99));
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .sc-panel.image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 36px;
+        }
+
+        .sc-panel.image img {
+            width: 100%;
+            max-height: 540px;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            filter: drop-shadow(0 28px 48px rgba(0,0,0,.5));
+        }
+
+        .sc-copy {
+            padding: 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 28px;
+        }
+
+        .sc-copy h2 {
+            margin: 0;
+            font-size: clamp(1.9rem, 3vw, 3.2rem);
+            line-height: 1.02;
+            letter-spacing: -.02em;
+        }
+
+        .sc-copy p {
+            margin: 14px 0 0;
+            color: var(--muted);
+            line-height: 1.65;
+            font-size: .98rem;
+        }
+
+        /* ─── Steps ─── */
+        .steps { display: grid; gap: 10px; }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: border-color .2s, background .2s;
+            cursor: default;
+        }
+
+        .step:hover {
+            border-color: var(--line-bright);
+            background: rgba(255,255,255,.03);
+        }
+
+        .step-num {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: .88rem;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            color: #021018;
+        }
+
+        .step b { font-weight: 600; font-size: .95rem; }
+
+        /* ─── Keyboard shortcut highlight ─── */
+        .shortcut-band {
+            margin-top: 20px;
+            padding: 18px 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(14,232,255,.18);
+            background: rgba(14,232,255,.05);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .shortcut-band code {
+            font-family: var(--font-mono);
+            font-size: .95rem;
+            color: var(--cyan);
+            background: rgba(14,232,255,.1);
+            padding: 4px 10px;
+            border-radius: 7px;
+            border: 1px solid rgba(14,232,255,.22);
+            white-space: nowrap;
+        }
+
+        .shortcut-band span { color: var(--muted); font-size: .9rem; }
+
+        /* ─── Download band ─── */
+        .download-band {
+            position: relative;
+            overflow: hidden;
+            padding: 52px 48px;
+            border: 1px solid rgba(80,160,255,.2);
+            border-radius: var(--radius-lg);
+            background:
+                radial-gradient(ellipse 60% 80% at 90% 10%, rgba(14,232,255,.18), transparent),
+                linear-gradient(140deg, rgba(6,14,28,.98), rgba(3,8,16,.98));
+            box-shadow: var(--shadow);
+        }
+
+        /* Decorative circle */
+        .download-band::before {
+            content: '';
+            position: absolute;
+            right: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            border: 1px solid rgba(14,232,255,.1);
+            pointer-events: none;
+        }
+
+        .download-band::after {
+            content: '';
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            border: 1px solid rgba(14,232,255,.07);
+            pointer-events: none;
+        }
+
+        .download-band h2 {
+            margin: 0;
+            font-size: clamp(2rem, 3.6vw, 3.8rem);
+            line-height: 1;
+            letter-spacing: -.02em;
+            max-width: 780px;
+        }
+
+        .download-band p {
+            margin: 18px 0 0;
+            max-width: 640px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        /* ─── Changelog snippet ─── */
+        .changelog {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 28px;
+        }
+
+        .cl-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: .88rem;
+            color: var(--muted);
+        }
+
+        .cl-item::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+        }
+
+        /* ─── Footer ─── */
+        .footer {
+            padding: 42px 0 30px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--muted);
+            font-size: .88rem;
+        }
+
+        .footer-brand {
+            font-weight: 700;
+            font-size: .95rem;
+            color: var(--soft);
+        }
+
+        .footer-brand .snap { color: var(--cyan); }
+
+        /* ─── Reveal animation ─── */
+        .js .reveal {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 580ms ease, transform 580ms ease;
+        }
+
+        .js .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* ─── Scrollbar ─── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--page); }
+        ::-webkit-scrollbar-thumb { background: rgba(100,140,200,.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(100,140,200,.5); }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 1100px) {
+            .hero { padding-top: 108px; min-height: auto; }
+            .hero-inner { grid-template-columns: 1fr; }
+            .hero-proof {
+                position: relative;
+                right: auto; bottom: auto;
+                width: min(460px, 100%);
+                margin: -40px 0 0 auto;
+                animation: none;
+            }
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+            .showcase { grid-template-columns: 1fr; }
+            .showcase.reverse { direction: ltr; }
+        }
+
+        @media (max-width: 700px) {
+            .topbar {
+                position: static;
+                transform: none;
+                margin: 12px auto;
+                width: min(100%, calc(100% - 22px));
+                animation: none;
+            }
+            .site, .hero-inner { width: min(100%, calc(100% - 22px)); }
+            .hero { padding: 30px 0 50px; }
+            .hero-inner { display: block; }
+            .product-stage { margin-top: 30px; min-height: auto; display: block; }
+            .editor-frame { transform: none !important; animation: none; border-radius: 18px; }
+            .hero-proof { position: relative; right: auto; bottom: auto; width: 100%; margin-top: 14px; animation: none; }
+            .trust-row { grid-template-columns: 1fr; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .cta-row .btn { width: 100%; }
+            .section { padding-top: 58px; }
+            .section-head { flex-direction: column; align-items: flex-start; }
+            .download-band { padding: 28px 22px; border-radius: 20px; }
+            .sc-panel.image, .sc-copy { padding: 22px; border-radius: 20px; }
+            h1 { font-size: clamp(3rem, 14vw, 3.8rem); }
+            .footer { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Atmospheric backgrounds -->
+<div class="bg-layer" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<!-- Topbar -->
+<header class="topbar">
+    <a class="brand" href="#top" aria-label="SnapDesk — Início">
+        <img src="../SnapDeskLogo.ico" alt="">
+        <span class="brand-name"><span class="snap">Snap</span>Desk</span>
+    </a>
+    <nav class="nav" aria-label="Navegação principal">
+        <a href="#recursos">Recursos</a>
+        <a href="#editor">Editor</a>
+        <a href="#discord">Discord</a>
+        <a href="./pro.html">Pro</a>
+        <a href="#download">Download</a>
+    </nav>
+    <a class="btn btn-primary" href="../dist/portable/SnapDesk.exe" style="min-height:38px; padding:0 16px; font-size:.88rem;">
+        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 12-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="4" rx="2"/></svg>
+        Baixar
+    </a>
+</header>
+
+<main id="top">
+    <!-- ═══ HERO ═══ -->
+    <section class="hero">
+        <div class="hero-inner">
+            <!-- Copy side -->
+            <div class="hero-copy">
+                <div class="tag"><span class="dot"></span> Em desenvolvimento ativo para Windows</div>
+
+                <h1>
+                    <span class="h1-snap">Snap</span><span class="h1-desk">Desk</span>
+                </h1>
+
+                <p class="hero-lead">
+                    Capture, anote e envie para o Discord.<br>
+                    <strong>Extraia texto de qualquer imagem em segundos.</strong>
+                </p>
+
+                <div class="cta-row">
+                    <a class="btn btn-primary" href="../dist/portable/SnapDesk.exe">
+                        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 12-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="4" rx="2"/></svg>
+                        Baixar SnapDesk
+                    </a>
+                    <a class="btn btn-ghost" href="../dist/installer/SnapDeskPortable.zip">
+                        <svg viewBox="0 0 24 24"><path d="M21 8V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1M16 12H8m4-4-4 4 4 4"/></svg>
+                        Versão portátil .ZIP
+                    </a>
+                </div>
+
+                <p class="version-note">v0.x · Windows 10/11 · ~4 MB</p>
+
+                <div class="trust-row">
+                    <div class="trust-pill">
+                        <b>Ctrl+Shift+S</b>
+                        <span>Congela a tela para seleção precisa de área.</span>
+                    </div>
+                    <div class="trust-pill">
+                        <b>Editor flutuante</b>
+                        <span>Seta, texto, blur, pixelação e marcações rápidas.</span>
+                    </div>
+                    <div class="trust-pill">
+                        <b>Upload rápido</b>
+                        <span>Catbox temporário ou Discord via webhook.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product preview side -->
+            <div class="product-stage" aria-label="Pré-visualização real do SnapDesk">
+                <div class="editor-frame" id="editorFrame">
+                    <div class="frame-bar">
+                        <span class="frame-title">
+                            <span class="frame-dot"></span>
+                            Editor flutuante — SnapDesk
+                        </span>
+                        <span class="win-controls">
+                            <span></span><span></span><span></span>
+                        </span>
+                    </div>
+                    <img src="./assets/snapdesk-editor.png" alt="Editor flutuante do SnapDesk com barra de ferramentas lateral">
+                </div>
+
+                <aside class="hero-proof" aria-label="Upload concluído para Discord">
+                    <div class="proof-header">
+                        <span>Upload concluído · Discord</span>
+                        <span class="win-controls">
+                            <span></span><span></span><span></span>
+                        </span>
+                    </div>
+                    <img src="./assets/snapdesk-discord-upload.png" alt="Janela do SnapDesk mostrando upload finalizado para o Discord">
+                </aside>
+            </div>
+        </div>
+    </section>
+
+    <div class="site">
+
+        <!-- ═══ RECURSOS ═══ -->
+        <section class="section reveal" id="recursos">
+            <div class="section-head">
+                <h2>Pequeno o bastante para não atrapalhar.<br>Completo onde importa.</h2>
+                <p>O SnapDesk vive na bandeja, captura no momento certo e deixa você decidir o que fazer com o print — sem janelas enormes no meio do fluxo.</p>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28">
+                            <rect x="7" y="7" width="14" height="14" rx="3" fill="rgba(14,232,255,.14)" stroke="none"/>
+                            <path d="M4.5 10V6.5a2 2 0 0 1 2-2H10M18 4.5h3.5a2 2 0 0 1 2 2V10M23.5 18v3.5a2 2 0 0 1-2 2H18M10 23.5H6.5a2 2 0 0 1-2-2V18"/>
+                            <path d="M10.5 14h7M14 10.5v7"/>
+                        </svg>
+                    </div>
+                    <h3>Captura precisa</h3>
+                    <p>A tela congela ao pressionar o atalho, então você seleciona a área com calma e sem pressa.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28">
+                            <path d="M8 4.5h8.5L21 9v14.5H8z" fill="rgba(14,232,255,.14)" stroke="none"/>
+                            <path d="M8 4.5h8.5L21 9v14.5H8zM16.5 4.5V9H21M6 9H4.5v10H6M22 9h1.5v10H22"/>
+                            <path d="M11 13h6M11 17h7M11 21h4"/>
+                        </svg>
+                    </div>
+                    <h3>Extração de texto (OCR)</h3>
+                    <p>Converta qualquer imagem em texto com um clique. O resultado vai direto para a área de transferência.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28">
+                            <path d="M8.2 21.5h11.2a5.1 5.1 0 0 0 .8-10.1A7.1 7.1 0 0 0 6.5 13a4.3 4.3 0 0 0 1.7 8.5z"/>
+                            <path d="M14 20V10.5M10.5 14l3.5-3.5L17.5 14"/>
+                        </svg>
+                    </div>
+                    <h3>Upload direto</h3>
+                    <p>Envie para o Catbox (link temporário) ou para um canal do Discord usando webhook próprio.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 28 28">
+                            <path d="M12 8H7V3"/>
+                            <path d="M7.4 7.7a8 8 0 1 1-1.2 8.4"/>
+                            <path d="M11.5 15.2l2.4 2.4 5-5"/>
+                        </svg>
+                    </div>
+                    <h3>Fluxo reversível</h3>
+                    <p>Desfaça anotações, apague marcações e copie a imagem final quando estiver satisfeito.</p>
+                </article>
+            </div>
+</section>
+
+        <!-- ═══ EDITOR ═══ -->
+        <section class="section reveal" id="editor">
+            <div class="showcase">
+                <div class="sc-panel image">
+                    <img src="./assets/snapdesk-editor.png" alt="Editor flutuante do SnapDesk com barra de ferramentas lateral">
+                </div>
+
+                <div class="sc-panel sc-copy">
+                    <div>
+                        <h2>Editor por cima da captura, sem perder o contexto.</h2>
+                        <p>O print vira uma área de trabalho temporária. A barra de ferramentas aparece ao lado da seleção e as ações ficam próximas à imagem — sem aquela sensação de app pesado atrapalhando o fluxo.</p>
+                    </div>
+
+                    <div>
+                        <div class="shortcut-band">
+                            <code>Ctrl+Shift+S</code>
+                            <span>Congela a tela e abre o seletor de área</span>
+                        </div>
+                        <div class="steps" style="margin-top:16px;">
+                            <div class="step"><span class="step-num">1</span><b>Selecione a área da tela desejada</b></div>
+                            <div class="step"><span class="step-num">2</span><b>Anote, escreva, oculte ou destaque</b></div>
+                            <div class="step"><span class="step-num">3</span><b>Copie, salve ou envie para o upload</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ DISCORD ═══ -->
+        <section class="section reveal" id="discord">
+            <div class="showcase reverse">
+                <div class="sc-panel sc-copy">
+                    <div>
+                        <h2>Upload para Discord sem complicação.</h2>
+                        <p>Escolha o provider Discord, cole o webhook nas configurações e pronto. O SnapDesk envia a imagem como anexo, copia o link automaticamente e deixa você abrir ou reutilizar quando quiser.</p>
+                    </div>
+
+                    <div>
+                        <div class="steps">
+                            <div class="step"><span class="step-num">1</span><b>Configure o webhook uma única vez</b></div>
+                            <div class="step"><span class="step-num">2</span><b>Tire o print normalmente</b></div>
+                            <div class="step"><span class="step-num">3</span><b>Receba o link do anexo no clipboard</b></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sc-panel image">
+                    <img src="./assets/snapdesk-discord-upload.png" alt="Upload do SnapDesk finalizado no Discord">
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ DOWNLOAD ═══ -->
+        <section class="section reveal" id="download">
+            <div class="download-band">
+                <div class="tag" style="margin-bottom:20px;"><span class="dot"></span> Disponível agora</div>
+                <h2>Teste a versão atual do SnapDesk.</h2>
+                <p>O projeto evolui ativamente, mas já conta com captura congelada, editor flutuante, upload temporário, Discord webhook, extração de texto via OCR e build portátil — pronto para o dia a dia.</p>
+
+                <div class="changelog">
+                    <div class="cl-item">Captura com seleção de área e tela congelada</div>
+                    <div class="cl-item">Editor flutuante com seta, texto, blur e pixelação</div>
+                    <div class="cl-item">OCR — extração de texto de qualquer imagem</div>
+                    <div class="cl-item">Upload via Catbox temporário e Discord webhook</div>
+                    <div class="cl-item">Build portátil, sem necessidade de instalação</div>
+                </div>
+
+                <div class="cta-row" style="margin-top:28px;">
+                    <a class="btn btn-primary" href="../dist/portable/SnapDesk.exe">
+                        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 12-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="4" rx="2"/></svg>
+                        Baixar executável
+                    </a>
+                    <a class="btn btn-ghost" href="../dist/installer/SnapDeskSetup.exe">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                        Baixar instalador
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span class="footer-brand"><span class="snap">Snap</span>Desk</span>
+            <span>Print rápido, simples e poderoso para Windows.</span>
+            <span>Feito com ♥ — projeto em desenvolvimento ativo</span>
+        </footer>
+
+    </div><!-- .site -->
+</main>
+
+<script>
+(function () {
+    // JS class for reveal animations
+    document.documentElement.classList.add('js');
+
+    // Intersection Observer for scroll reveals
+    var items = document.querySelectorAll('.reveal');
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                io.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function (el) { io.observe(el); });
+
+    // 3D tilt on hero frame (fine pointer only)
+    var stage = document.querySelector('.product-stage');
+    var frame = document.getElementById('editorFrame');
+    if (stage && frame && window.matchMedia('(pointer: fine)').matches) {
+        var raf = null;
+        stage.addEventListener('mousemove', function (e) {
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(function () {
+                var r = stage.getBoundingClientRect();
+                var x = (e.clientX - r.left) / r.width - 0.5;
+                var y = (e.clientY - r.top)  / r.height - 0.5;
+                frame.style.setProperty('--tx', (2  - y * 4) + 'deg');
+                frame.style.setProperty('--ty', (-8 + x * 6) + 'deg');
+            });
+        });
+        stage.addEventListener('mouseleave', function () {
+            frame.style.setProperty('--tx', '2deg');
+            frame.style.setProperty('--ty', '-8deg');
+        });
+    }
+
+    // Topbar scroll opacity
+    var topbar = document.querySelector('.topbar');
+    if (topbar && window.innerWidth > 700) {
+        window.addEventListener('scroll', function () {
+            var ratio = Math.min(window.scrollY / 80, 1);
+            topbar.style.background = 'rgba(3,8,16,' + (0.78 + ratio * 0.18) + ')';
+        }, { passive: true });
+    }
+})();
+</script>
+</body>
+</html>
